@@ -1,0 +1,140 @@
+http://localhost:8080/ で起動するGraphQL playgroundで動作を見る用のクエリメモ
+
+# Threads:スレッド一覧
+query {
+  threads {
+    id
+    title
+    firstPost {
+      id
+      content
+      author
+      createdAt
+    }
+  }
+}
+
+# Thread:スレッド詳細
+query {
+  thread(id: "2") {
+    id
+    title
+    firstPost {
+      content
+    }
+    responses {
+      id
+      post {
+        id
+        content
+        author
+      }
+    }
+  }
+}
+
+# responses:レスポンスを取得
+query {
+  responses(threadId: "1") {
+    id
+    post {
+      id
+      content
+      author
+      createdAt
+    }
+  }
+}
+
+# createThread:スレッドを作成
+mutation {
+  createThread(
+    title: "はじめてのスレッド",
+    content: "こんにちは、はじめて投稿します！",
+    author: "user99"
+  ) {
+    success
+    message
+    object {
+      ... on Thread {
+        id
+        title
+        firstPost {
+          id
+          content
+          author
+          createdAt
+        }
+      }
+    }
+  }
+}
+
+# deleteThread:スレッドを削除
+mutation {
+  deleteThread(threadId: "3") {
+    success
+    message
+    object {
+      ... on DeleteResult {
+        id
+      }
+    }
+  }
+}
+
+# addResponse:レスポンスを追加
+mutation {
+  addResponse(
+    threadId: "1",
+    content: "同感です！このトピック興味あります！",
+    author: "user77"
+  ) {
+    success
+    message
+    object {
+      ... on Response {
+        id
+        post {
+          id
+          content
+          author
+          createdAt
+        }
+      }
+    }
+  }
+}
+
+# updatePost:レスポンスを編集
+mutation {
+  updatePost(
+    postId: "2",
+    content: "内容をちょっと修正しました！",
+    author: "user2_fix"
+  ) {
+    success
+    message
+    object {
+      ... on Post {
+        id
+        content
+        author
+        createdAt
+      }
+    }
+  }
+}
+
+# deleteResponse:レスポンスを削除
+mutation {
+  deleteResponse(responseId: "6") {
+    success
+    message
+    object {
+      ... on DeleteResult {
+        id
+      }
+    }
+  }
+}

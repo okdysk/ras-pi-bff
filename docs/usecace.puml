@@ -1,0 +1,45 @@
+@startuml
+title 掲示板アプリ - データフローとユースケース
+
+actor ユーザー
+
+rectangle "DB操作" {
+  usecase "① スレッド作成" as UC1
+  usecase "② スレッド一覧取得" as UC2
+  usecase "③ レス投稿" as UC3
+  usecase "④ スレッド詳細取得" as UC4
+}
+
+ユーザー --> UC1
+ユーザー --> UC2
+ユーザー --> UC3
+ユーザー --> UC4
+
+note bottom of UC1
+INSERT INTO posts
+→ INSERT INTO threads
+end note
+
+note bottom of UC2
+SELECT posts.content, threads.title
+FROM threads
+JOIN posts ON threads.first_post_id = posts.id
+end note
+
+note bottom of UC3
+INSERT INTO posts
+→ INSERT INTO responses
+end note
+
+note top of UC4
+SELECT posts.*
+FROM responses
+JOIN posts ON responses.post_id = posts.id
+WHERE responses.thread_id = ?
+UNION
+SELECT posts.*
+FROM threads
+JOIN posts ON threads.first_post_id = posts.id
+WHERE threads.id = ?
+end note
+@enduml

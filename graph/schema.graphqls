@@ -1,0 +1,55 @@
+# スキーマ定義
+scalar DateTime
+
+# 掲示板の全スレッド一覧や個別スレッド、レスポンス一覧を取得するクエリ
+type Query {
+  threads: [Thread!]! # 全スレッド一覧
+  thread(id: ID!): Thread # スレッドIDで個別スレッド取得
+  responses(threadId: ID!): [Response!]! # スレッドIDでレス一覧取得
+}
+
+# スレッド情報
+type Thread {
+  id: ID! # スレッドID
+  title: String! # スレッドタイトル
+  firstPost: Post! # スレッドの最初の投稿（レスポンスには含まれない）
+  responses: [Response!]! # レスポンス群
+}
+
+# レス情報
+type Response {
+  id: ID! # レスID
+  post: Post! # レスの投稿内容
+}
+
+# 投稿情報
+type Post {
+  id: ID! # 投稿ID
+  content: String! # 投稿本文
+  author: String! # 投稿者名
+  createdAt: DateTime! # 投稿日時
+}
+
+# ミューテーション定義
+type Mutation {
+  createThread(title: String!, content: String!, author: String!): Result! # 新規スレッド作成
+  addResponse(threadId: ID!, content: String!, author: String!): Result! # スレッドにレスを追加
+  updatePost(postId: ID!, content: String!, author: String!): Result! # 投稿を更新
+  deleteThread(threadId: ID!): Result! # スレッドを削除
+  deleteResponse(responseId: ID!): Result! # レスを削除
+}
+
+# 成功／失敗の結果を返す型（汎用）
+type Result {
+  success: Boolean!
+  message: String
+  object: ResultObject
+}
+
+# mutationごとの返却オブジェクト（Union型）
+union ResultObject = Thread | Response | Post | DeleteResult
+
+# 削除処理などで使う結果オブジェクト
+type DeleteResult {
+  id: ID!
+}
