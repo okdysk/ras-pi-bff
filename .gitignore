@@ -19,7 +19,6 @@ profile.cov
 
 # gqlgen generated code
 /graph/generated/
-/graph/model/
 bbs-server
 
 # Dependency directories (remove the comment below to include it)
