@@ -245,77 +245,6 @@ func (r *mutationResolver) UpdatePost(ctx context.Context, postID string, conten
 	}, nil
 }
 
-// レスポンスを削除
-func (r *mutationResolver) DeleteResponse(ctx context.Context, responseID string) (*model.Result, error) {
-	// [1] ID変換
-	id, err := strconv.Atoi(responseID)
-	if err != nil {
-		msg := "responseIDの形式が不正です"
-		return &model.Result{Success: false, Message: &msg, Object: nil}, nil
-	}
-
-	// [2] トランザクション開始
-	tx, err := db.DB.BeginTx(ctx, nil)
-	if err != nil {
-		msg := "トランザクションの開始に失敗しました"
-		return &model.Result{Success: false, Message: &msg, Object: nil}, nil
-	}
-
-	// [3] post_idを取得
-	var postID int
-	err = tx.QueryRowContext(ctx, `
-		SELECT post_id FROM responses WHERE id = ?
-	`, id).Scan(&postID)
-	if err != nil {
-		tx.Rollback()
-		msg := "レスポンスが見つかりません"
-		return &model.Result{Success: false, Message: &msg, Object: nil}, nil
-	}
-
-	// [4] responses を削除
-	res, err := tx.ExecContext(ctx, `
-		DELETE FROM responses WHERE id = ?
-	`, id)
-	if err != nil {
-		tx.Rollback()
-		msg := "レスポンスの削除に失敗しました"
-		return &model.Result{Success: false, Message: &msg, Object: nil}, nil
-	}
-
-	rowsAffected, err := res.RowsAffected()
-	if err != nil || rowsAffected == 0 {
-		tx.Rollback()
-		msg := "レスポンスの削除対象が見つかりませんでした"
-		return &model.Result{Success: false, Message: &msg, Object: nil}, nil
-	}
-
-	// [5] 該当postを削除
-	_, err = tx.ExecContext(ctx, `
-		DELETE FROM posts WHERE id = ?
-	`, postID)
-	if err != nil {
-		tx.Rollback()
-		msg := "レスポンスに紐づく投稿の削除に失敗しました"
-		return &model.Result{Success: false, Message: &msg, Object: nil}, nil
-	}
-
-	// [6] コミット
-	if err := tx.Commit(); err != nil {
-		msg := "トランザクションのコミットに失敗しました"
-		return &model.Result{Success: false, Message: &msg, Object: nil}, nil
-	}
-
-	// [7] 成功返却
-	msg := "レスポンスを削除しました"
-	return &model.Result{
-		Success: true,
-		Message: &msg,
-		Object: &model.DeleteResult{
-			ID: responseID,
-		},
-	}, nil
-}
-
 // スレッドの削除
 func (r *mutationResolver) DeleteThread(ctx context.Context, threadID string) (*model.Result, error) {
 	// [1] threadIDをintに変換
@@ -425,6 +354,77 @@ func (r *mutationResolver) DeleteThread(ctx context.Context, threadID string) (*
 		Message: &msg,
 		Object: &model.DeleteResult{
 			ID: threadID,
+		},
+	}, nil
+}
+
+// レスポンスを削除
+func (r *mutationResolver) DeleteResponse(ctx context.Context, responseID string) (*model.Result, error) {
+	// [1] ID変換
+	id, err := strconv.Atoi(responseID)
+	if err != nil {
+		msg := "responseIDの形式が不正です"
+		return &model.Result{Success: false, Message: &msg, Object: nil}, nil
+	}
+
+	// [2] トランザクション開始
+	tx, err := db.DB.BeginTx(ctx, nil)
+	if err != nil {
+		msg := "トランザクションの開始に失敗しました"
+		return &model.Result{Success: false, Message: &msg, Object: nil}, nil
+	}
+
+	// [3] post_idを取得
+	var postID int
+	err = tx.QueryRowContext(ctx, `
+		SELECT post_id FROM responses WHERE id = ?
+	`, id).Scan(&postID)
+	if err != nil {
+		tx.Rollback()
+		msg := "レスポンスが見つかりません"
+		return &model.Result{Success: false, Message: &msg, Object: nil}, nil
+	}
+
+	// [4] responses を削除
+	res, err := tx.ExecContext(ctx, `
+		DELETE FROM responses WHERE id = ?
+	`, id)
+	if err != nil {
+		tx.Rollback()
+		msg := "レスポンスの削除に失敗しました"
+		return &model.Result{Success: false, Message: &msg, Object: nil}, nil
+	}
+
+	rowsAffected, err := res.RowsAffected()
+	if err != nil || rowsAffected == 0 {
+		tx.Rollback()
+		msg := "レスポンスの削除対象が見つかりませんでした"
+		return &model.Result{Success: false, Message: &msg, Object: nil}, nil
+	}
+
+	// [5] 該当postを削除
+	_, err = tx.ExecContext(ctx, `
+		DELETE FROM posts WHERE id = ?
+	`, postID)
+	if err != nil {
+		tx.Rollback()
+		msg := "レスポンスに紐づく投稿の削除に失敗しました"
+		return &model.Result{Success: false, Message: &msg, Object: nil}, nil
+	}
+
+	// [6] コミット
+	if err := tx.Commit(); err != nil {
+		msg := "トランザクションのコミットに失敗しました"
+		return &model.Result{Success: false, Message: &msg, Object: nil}, nil
+	}
+
+	// [7] 成功返却
+	msg := "レスポンスを削除しました"
+	return &model.Result{
+		Success: true,
+		Message: &msg,
+		Object: &model.DeleteResult{
+			ID: responseID,
 		},
 	}, nil
 }

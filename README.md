@@ -9,6 +9,14 @@ yoki@DESKTOP-V6KQ6K9:/mnt/g/data/Git/Go/ras-pi-bff$ go version
 go version go1.24.5 linux/amd64
 ```
 
+スタートアップ：
+```
+gqlgen generate
+go run server.go
+```
+
+**.env_sampleを.envとして書き換えて使ってください！**
+
 ### API構成図
 ```
 [Frontend] --> [GraphQL BFF (Go)：このリポジトリ] --> [DB (MariaDB)]
